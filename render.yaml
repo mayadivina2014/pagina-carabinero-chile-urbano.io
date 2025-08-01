@@ -1,0 +1,37 @@
+# `render.yaml`
+# Este archivo define los servicios que Render desplegará.
+
+services:
+  - type: web # Esto define que es un servicio web (una aplicación que responde a solicitudes HTTP)
+    name: chile-urbano-app # El nombre de tu servicio en Render (lo puedes cambiar si quieres)
+    env: node # El entorno de ejecución, en este caso Node.js
+    plan: free # El plan de suscripción (puedes cambiarlo a "starter" o "standard" si necesitas más recursos)
+    branch: main # La rama de tu repositorio que Render debe observar para despliegues automáticos
+    # rootDirectory: . # Por defecto, si el package.json está en la raíz, déjalo comentado o así.
+    
+    buildCommand: npm install # Comando para instalar dependencias
+    startCommand: node src/app.js # Comando para iniciar tu aplicación Express
+    
+    # Variables de entorno: MUY IMPORTANTE
+    # Los valores de estas variables DEBEN ser añadidos en la interfaz de Render.
+    # NO PONGAS LOS VALORES REALES AQUÍ, SOLO LOS NOMBRES DE LAS CLAVES.
+    envVars:
+      - key: MONGO_URI
+        sync: false # No sincronizar este valor sensible con el repositorio
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: DISCORD_CALLBACK_URL # Esta es la que debemos aclarar
+        sync: false
+      - key: DISCORD_TARGET_GUILD_ID # Para el ID del servidor de Discord
+        sync: false
+      - key: DISCORD_ADMIN_ROLE_IDS # Para los IDs de roles de administrador de Discord
+        sync: false
+      - key: DISCORD_ADMIN_USER_IDS # Para los IDs de usuarios administradores de Discord
+        sync: false
+
+    # Puertos (opcional, Render generalmente maneja esto automáticamente si tu app escucha en process.env.PORT)
+    # port: 3000
