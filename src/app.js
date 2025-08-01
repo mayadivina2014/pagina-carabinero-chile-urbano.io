@@ -126,7 +126,8 @@ app.get('/', (req, res) => {
 });
 
 // Rutas de información pública (dashboard público)
-app.use('/public-info', publicRoutes); // Por ejemplo, para /public-info/recent-vehicles
+// ¡CAMBIO IMPORTANTE AQUÍ! Ahora las rutas del public.js serán accesibles bajo /api/public
+app.use('/api/public', publicRoutes);
 
 // Rutas de autenticación
 app.use('/auth', authRoutes);
@@ -166,7 +167,6 @@ app.get('/search-vehicles', (req, res) => {
     }
 });
 
-// Rutas para modificar multas (la página en sí)
 app.get('/modify-fines', (req, res) => {
     if (req.isAuthenticated()) {
         res.sendFile(path.join(__dirname, '../public/modify-fines.html'));

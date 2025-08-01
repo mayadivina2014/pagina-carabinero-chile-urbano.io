@@ -3,141 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chile Urbano - Plataforma de Registro de Vehículos</title>
+    <title>Chile Urbano</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="/images/Logo_pagina.png" type="image/png">
 </head>
 <body>
-    <div class="top-bar">
+    <header class="top-bar">
         <h1>
-            <img src="/images/Logo_pagina.png" alt="Logo Chile Urbano" style="height: 40px; vertical-align: middle; margin-right: 15px;">
+            <img src="/images/Logo_pagina.png" alt="Logo Chile Urbano">
             Chile Urbano
         </h1>
         <a href="/auth/discord" class="btn-discord-login">
-            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo" class="discord-logo-btn">
-            Iniciar Sesión
+            <img src="/images/discord_logo.png" alt="Discord Logo" style="height: 20px; margin-right: 8px;">
+            Iniciar sesión con Discord
         </a>
-    </div>
+    </header>
 
     <div class="main-content-wrapper">
-        <div class="main-card">
-            <h2>Plataforma de Registro de Vehículos</h2>
-            <p class="tagline">
-                Tu centro oficial para la gestión y consulta de información vehicular en Chile.
-            </p>
+        <main class="main-card">
+            <h2>Bienvenido a Chile Urbano</h2>
+            <p class="tagline">La plataforma integral para la gestión de vehículos y ciudadanos.</p>
 
-            <div class="auth-call-to-action">
-                <h3>Accede a todas las funcionalidades</h3>
-                <p>
-                    Inicia sesión con tu cuenta de Discord para registrar y buscar vehículos, gestionar multas, y mucho más.
-                    Nuestra plataforma segura te conecta con la información relevante de manera eficiente.
-                </p>
+            <section class="auth-call-to-action">
+                <h3>Acceso Restringido</h3>
+                <p>Para acceder a las funciones completas de la plataforma (registro, búsqueda avanzada, gestión de multas, etc.), debes iniciar sesión con tu cuenta de Discord. Esto garantiza la seguridad y la autenticación de los usuarios autorizados.</p>
                 <a href="/auth/discord" class="btn-discord-cta">
-                    <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo" class="discord-logo-btn">
-                    Iniciar Sesión con Discord
+                    <img src="/images/discord_logo.png" alt="Discord Logo" style="height: 24px; margin-right: 10px;">
+                    Iniciar sesión con Discord
                 </a>
-            </div>
+            </section>
 
-            <div class="public-info-section">
-                <h3>Información Pública <span class="public-info-icon">🛡️</span></h3>
-                <p class="public-info-description">
-                    Esta sección muestra información actualizada recientemente, de carácter público y accesible sin iniciar sesión.
-                </p>
+            <section class="public-info-section">
+                <h3>Información Pública Reciente <span class="public-info-icon">🛡️</span></h3>
+                <p class="public-info-description">Explora los últimos datos públicos registrados en el sistema, como vehículos añadidos recientemente, personas buscadas y las multas más recientes.</p>
 
                 <div class="data-display-grid">
                     <div class="data-block">
-                        <h4>Vehículos Registrados Recientemente:</h4>
+                        <h4>Últimos Vehículos Registrados</h4>
                         <ul id="recent-vehicles-list">
-                            <li>Cargando...</li>
+                            <li>Cargando vehículos...</li>
                         </ul>
                     </div>
-                    
                     <div class="data-block">
-                        <h4>Personas Buscadas:</h4>
+                        <h4>Personas Buscadas</h4>
                         <ul id="wanted-people-list">
-                            <li>Cargando...</li>
+                            <li>Cargando personas...</li>
                         </ul>
                     </div>
-                    
                     <div class="data-block">
-                        <h4>Últimas Multas Registradas:</h4>
+                        <h4>Últimas Multas</h4>
                         <ul id="recent-fines-list">
-                            <li>Cargando...</li>
+                            <li>Cargando multas...</li>
                         </ul>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const recentVehiclesList = document.getElementById('recent-vehicles-list');
-            const wantedPeopleList = document.getElementById('wanted-people-list');
-            const recentFinesList = document.getElementById('recent-fines-list');
-
-            // Función genérica para mostrar "No hay datos disponibles"
-            const showNoData = (listElement) => {
-                listElement.innerHTML = '<li>No hay datos disponibles.</li>';
+            // Función para formatear fechas
+            const formatDate = (dateString) => {
+                if (!dateString) return 'N/A';
+                try {
+                    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    return new Date(dateString).toLocaleDateString('es-ES', options);
+                } catch (e) {
+                    return dateString; // Devuelve la cadena original si hay error
+                }
             };
 
-            // Cargar vehículos recientes
-            try {
-                const response = await fetch('/api/public/recent-vehicles');
-                const vehicles = await response.json();
-                if (response.ok && vehicles.length > 0) {
-                    recentVehiclesList.innerHTML = vehicles.map(v => `
-                        <li>
-                            <p><strong>${v.patente}</strong> - ${v.marca} ${v.modelo}</p>
-                            <p>Registrado: ${new Date(v.createdAt).toLocaleDateString()}</p>
-                        </li>
-                    `).join('');
-                } else {
-                    showNoData(recentVehiclesList);
-                }
-            } catch (error) {
-                console.error('Error al cargar vehículos recientes:', error);
-                showNoData(recentVehiclesList);
-            }
+            // Función para cargar vehículos recientes
+            const loadRecentVehicles = async () => {
+                const listElement = document.getElementById('recent-vehicles-list');
+                try {
+                    const response = await fetch('/api/public/recent-vehicles');
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Error ${response.status}: ${errorText}`);
+                    }
+                    const vehicles = await response.json();
+                    listElement.innerHTML = ''; // Limpiar el mensaje de carga
 
-            // Cargar personas buscadas
-            try {
-                const response = await fetch('/api/public/wanted-people');
-                const people = await response.json();
-                if (response.ok && people.length > 0) {
-                    wantedPeopleList.innerHTML = people.map(p => `
-                        <li>
-                            <p><strong>${p.nombreCompleto}</strong> (${p.rut})</p>
-                            <p>Motivo: ${p.motivo_busqueda || 'N/A'}</p>
-                            <p>Lugar: ${p.lugar_busqueda || 'N/A'}</p>
-                        </li>
-                    `).join('');
-                } else {
-                    showNoData(wantedPeopleList);
-                }
-            } catch (error) {
-                console.error('Error al cargar personas buscadas:', error);
-                showNoData(wantedPeopleList);
-            }
+                    if (vehicles.length === 0) {
+                        listElement.innerHTML = '<li>No hay vehículos recientes.</li>';
+                        return;
+                    }
 
-            // Cargar últimas multas
-            try {
-                const response = await fetch('/api/public/recent-fines');
-                const fines = await response.json();
-                if (response.ok && fines.length > 0) {
-                    recentFinesList.innerHTML = fines.map(f => `
-                        <li>
-                            <p><strong>Patente: ${f.patente}</strong> (Propietario: ${f.propietario ? f.propietario.nombreCompleto : 'N/A'})</p>
-                            <p>Motivo: ${f.motivo} - Monto: $${f.monto}</p>
-                            <p>Fecha: ${new Date(f.fecha).toLocaleDateString()}</p>
-                        </li>
-                    `).join('');
-                } else {
-                    showNoData(recentFinesList);
+                    vehicles.forEach(vehicle => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${vehicle.marca} ${vehicle.modelo}</strong><br>
+                                        Patente: ${vehicle.patente}<br>
+                                        Año: ${vehicle.anio || 'N/A'}<br>
+                                        Registro: ${formatDate(vehicle.fechaRegistro)}`;
+                        listElement.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar vehículos recientes:', error);
+                    listElement.innerHTML = `<li>Error al cargar vehículos: ${error.message}</li>`;
                 }
-            } catch (error) {
-                console.error('Error al cargar últimas multas:', error);
-                showNoData(recentFinesList);
-            }
+            };
+
+            // Función para cargar personas buscadas
+            const loadWantedPeople = async () => {
+                const listElement = document.getElementById('wanted-people-list');
+                try {
+                    const response = await fetch('/api/public/wanted-people');
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Error ${response.status}: ${errorText}`);
+                    }
+                    const people = await response.json();
+                    listElement.innerHTML = ''; // Limpiar el mensaje de carga
+
+                    if (people.length === 0) {
+                        listElement.innerHTML = '<li>No hay personas buscadas.</li>';
+                        return;
+                    }
+
+                    people.forEach(person => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${person.nombreCompleto}</strong><br>
+                                        RUT: ${person.rut || 'N/A'}<br>
+                                        Motivo: ${person.motivo_busqueda || 'N/A'}`;
+                        listElement.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar personas buscadas:', error);
+                    listElement.innerHTML = `<li>Error al cargar personas: ${error.message}</li>`;
+                }
+            };
+
+            // Función para cargar últimas multas
+            const loadRecentFines = async () => {
+                const listElement = document.getElementById('recent-fines-list');
+                try {
+                    const response = await fetch('/api/public/recent-fines');
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Error ${response.status}: ${errorText}`);
+                    }
+                    const fines = await response.json();
+                    listElement.innerHTML = ''; // Limpiar el mensaje de carga
+
+                    if (fines.length === 0) {
+                        listElement.innerHTML = '<li>No hay multas recientes.</li>';
+                        return;
+                    }
+
+                    fines.forEach(fine => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `<strong>${fine.motivo}</strong><br>
+                                        Patente: ${fine.patente || 'N/A'}<br>
+                                        Monto: $${fine.monto ? fine.monto.toLocaleString('es-CL') : 'N/A'}<br>
+                                        Fecha: ${formatDate(fine.fecha)}`;
+                        if (fine.propietario && fine.propietario.nombreCompleto) {
+                            li.innerHTML += `<br>Propietario: ${fine.propietario.nombreCompleto}`;
+                        }
+                        listElement.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar últimas multas:', error);
+                    listElement.innerHTML = `<li>Error al cargar multas: ${error.message}</li>`;
+                }
+            };
+
+            // Cargar datos al inicio
+            loadRecentVehicles();
+            loadWantedPeople();
+            loadRecentFines();
         });
     </script>
 </body>
