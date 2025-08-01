@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Multas - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Estilos específicos para esta página */
+        .search-section, .fines-section {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="date"],
+        .form-group textarea,
+        .form-group select {
+            width: calc(100% - 22px); /* Ajuste para padding y borde */
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Incluye padding y borde en el ancho */
+        }
+        .form-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .fine-card {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative; /* Para el botón de eliminar */
+        }
+        .fine-card h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .fine-card .btn-delete-fine {
+            background-color: #dc3545;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .message.info {
+            background-color: #e7f3fe;
+            color: #0056b3;
+            border: 1px solid #b3d4fc;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Modificar Multas</h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <div class="search-section">
+            <h2>Buscar Vehículo por Patente</h2>
+            <div class="form-group">
+                <label for="patenteSearch">Patente del Vehículo:</label>
+                <input type="text" id="patenteSearch" placeholder="Ej: ABCD12" required>
+            </div>
+            <button id="searchVehicleBtn" class="btn">Buscar Vehículo</button>
+        </div>
+
+        <div id="vehicleInfo" class="fines-section" style="display: none;">
+            <h2>Multas para <span id="vehiclePatenteDisplay"></span></h2>
+            <p>Marca: <span id="vehicleMarca"></span></p>
+            <p>Modelo: <span id="vehicleModelo"></span></p>
+            <p>Color: <span id="vehicleColor"></span></p>
+            <hr>
+            <div id="finesList">
+                </div>
+            <p id="noFinesMessage" style="display: none; text-align: center; color: #555;">Este vehículo no tiene multas registradas.</p>
+        </div>
+
+        <a href="/dashboard" class="btn-discord" style="background-color: #007bff; margin-top: 20px;">
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const patenteSearchInput = document.getElementById('patenteSearch');
+            const searchVehicleBtn = document.getElementById('searchVehicleBtn');
+            const vehicleInfoDiv = document.getElementById('vehicleInfo');
+            const vehiclePatenteDisplay = document.getElementById('vehiclePatenteDisplay');
+            const vehicleMarca = document.getElementById('vehicleMarca');
+            const vehicleModelo = document.getElementById('vehicleModelo');
+            const vehicleColor = document.getElementById('vehicleColor');
+            const finesListDiv = document.getElementById('finesList');
+            const noFinesMessage = document.getElementById('noFinesMessage');
+
+            let currentVehicleId = null; // Para almacenar el ID del vehículo actual
+
+            // Función para mostrar mensajes
+            function showMessage(container, msg, type = 'info') {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', type);
+                messageDiv.textContent = msg;
+                container.prepend(messageDiv); // Añadir al principio del contenedor
+                setTimeout(() => messageDiv.remove(), 5000); // Eliminar después de 5 segundos
+            }
+
+            // Función para cargar las multas de un vehículo
+            async function loadVehicleFines(patente) {
+                try {
+                    const searchResponse = await fetch(`/api/vehicles/search?query=${encodeURIComponent(patente)}`);
+                    const searchData = await searchResponse.json();
+
+                    if (!searchResponse.ok) {
+                        showMessage(vehicleInfoDiv, searchData.message || 'Error al buscar el vehículo.', 'error');
+                        vehicleInfoDiv.style.display = 'none';
+                        return;
+                    }
+
+                    if (searchData.length === 0) {
+                        showMessage(vehicleInfoDiv, 'Vehículo no encontrado con la patente proporcionada.', 'info');
+                        vehicleInfoDiv.style.display = 'none';
+                        return;
+                    }
+
+                    const vehicle = searchData[0]; // Tomamos el primer resultado si hay varios
+                    currentVehicleId = vehicle._id;
+
+                    vehiclePatenteDisplay.textContent = vehicle.patente;
+                    vehicleMarca.textContent = vehicle.marca;
+                    vehicleModelo.textContent = vehicle.modelo;
+                    vehicleColor.textContent = vehicle.color;
+
+                    finesListDiv.innerHTML = ''; // Limpiar multas anteriores
+                    if (vehicle.multas && vehicle.multas.length > 0) {
+                        noFinesMessage.style.display = 'none';
+                        vehicle.multas.forEach(fine => {
+                            const fineCard = document.createElement('div');
+                            fineCard.classList.add('fine-card');
+                            fineCard.dataset.fineId = fine._id; // Guardar el ID de la multa
+
+                            const fineDate = fine.fecha ? new Date(fine.fecha).toISOString().split('T')[0] : ''; // Formato YYYY-MM-DD
+
+                            fineCard.innerHTML = `
+                                <h4>Multa ID: ${fine._id}</h4>
+                                <div class="form-group">
+                                    <label for="motivo-${fine._id}">Motivo:</label>
+                                    <input type="text" id="motivo-${fine._id}" value="${fine.motivo || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="monto-${fine._id}">Monto ($):</label>
+                                    <input type="number" id="monto-${fine._id}" value="${fine.monto || 0}" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="lugar-${fine._id}">Lugar:</label>
+                                    <input type="text" id="lugar-${fine._id}" value="${fine.lugar || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="descripcion-${fine._id}">Descripción:</label>
+                                    <textarea id="descripcion-${fine._id}" rows="2">${fine.descripcion || ''}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="fecha-${fine._id}">Fecha:</label>
+                                    <input type="date" id="fecha-${fine._id}" value="${fineDate}">
+                                </div>
+                                <div class="form-group">
+                                    <input type="checkbox" id="pagada-${fine._id}" ${fine.pagada ? 'checked' : ''}>
+                                    <label for="pagada-${fine._id}">Pagada</label>
+                                </div>
+                                <button class="btn btn-save-fine" data-fine-id="${fine._id}">Guardar Cambios</button>
+                                <button class="btn btn-delete-fine" data-fine-id="${fine._id}">Eliminar Multa</button>
+                            `;
+                            finesListDiv.appendChild(fineCard);
+                        });
+                        addFineEventListeners(); // Añadir listeners después de cargar las multas
+                    } else {
+                        noFinesMessage.style.display = 'block';
+                    }
+                    vehicleInfoDiv.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error al cargar multas del vehículo:', error);
+                    showMessage(vehicleInfoDiv, 'Error al conectar con el servidor para buscar el vehículo.', 'error');
+                    vehicleInfoDiv.style.display = 'none';
+                }
+            }
+
+            // Función para añadir event listeners a los botones de guardar y eliminar
+            function addFineEventListeners() {
+                document.querySelectorAll('.btn-save-fine').forEach(button => {
+                    button.onclick = async (event) => {
+                        const fineId = event.target.dataset.fineId;
+                        const fineCard = event.target.closest('.fine-card');
+
+                        const updatedFine = {
+                            motivo: fineCard.querySelector(`#motivo-${fineId}`).value,
+                            monto: parseFloat(fineCard.querySelector(`#monto-${fineId}`).value),
+                            lugar: fineCard.querySelector(`#lugar-${fineId}`).value,
+                            descripcion: fineCard.querySelector(`#descripcion-${fineId}`).value,
+                            fecha: fineCard.querySelector(`#fecha-${fineId}`).value,
+                            pagada: fineCard.querySelector(`#pagada-${fineId}`).checked
+                        };
+
+                        try {
+                            const response = await fetch(`/api/vehicles/${currentVehicleId}/fines/${fineId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(updatedFine)
+                            });
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                showMessage(fineCard, data.message || 'Multa actualizada con éxito.', 'success');
+                            } else {
+                                showMessage(fineCard, data.message || 'Error al actualizar la multa.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error de red al actualizar multa:', error);
+                            showMessage(fineCard, 'Error de conexión al actualizar la multa.', 'error');
+                        }
+                    };
+                });
+
+                document.querySelectorAll('.btn-delete-fine').forEach(button => {
+                    button.onclick = async (event) => {
+                        const fineId = event.target.dataset.fineId;
+                        const fineCard = event.target.closest('.fine-card');
+
+                        if (!confirm('¿Estás seguro de que quieres eliminar esta multa?')) {
+                            return;
+                        }
+
+                        try {
+                            const response = await fetch(`/api/vehicles/${currentVehicleId}/fines/${fineId}`, {
+                                method: 'DELETE'
+                            });
+                            const data = await response.json();
+
+                            if (response.ok) {
+                                showMessage(vehicleInfoDiv, data.message || 'Multa eliminada con éxito.', 'success');
+                                fineCard.remove(); // Eliminar la tarjeta de la multa del DOM
+                                // Si no quedan multas, mostrar el mensaje de "no multas"
+                                if (finesListDiv.children.length === 0) {
+                                    noFinesMessage.style.display = 'block';
+                                }
+                            } else {
+                                showMessage(fineCard, data.message || 'Error al eliminar la multa.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Error de red al eliminar multa:', error);
+                            showMessage(fineCard, 'Error de conexión al eliminar la multa.', 'error');
+                        }
+                    };
+                });
+            }
+
+
+            // Event listener para el botón de búsqueda de vehículo
+            searchVehicleBtn.addEventListener('click', () => {
+                const patente = patenteSearchInput.value.trim();
+                if (patente) {
+                    loadVehicleFines(patente);
+                } else {
+                    showMessage(searchVehicleBtn.parentNode, 'Por favor, ingresa una patente.', 'info');
+                }
+            });
+
+            // Permitir búsqueda al presionar Enter en el input de patente
+            patenteSearchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    searchVehicleBtn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

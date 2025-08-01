@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Vehículo - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Registrar Vehículo</h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <h2>Formulario de Registro de Nuevo Vehículo</h2>
+        <p>Ingresa los datos del propietario y del vehículo.</p>
+
+        <form id="register-vehicle-form">
+            <h3>Datos del Propietario</h3>
+            <div class="form-group">
+                <label for="nombreCompleto">Nombre Completo:</label>
+                <input type="text" id="nombreCompleto" name="nombreCompleto" required>
+            </div>
+            <div class="form-group">
+                <label for="rut">RUT:</label>
+                <input type="text" id="rut" name="rut" placeholder="Ej: 12.345.678-9" required>
+            </div>
+            <div class="form-group">
+                <label for="edad">Edad:</label>
+                <input type="number" id="edad" name="edad" min="18" max="120">
+            </div>
+
+            <h3>Datos del Vehículo</h3>
+            <div class="form-group">
+                <label for="tipo_vehiculo">Tipo de Vehículo:</label>
+                <select id="tipo_vehiculo" name="tipo_vehiculo" required>
+                    <option value="">Selecciona un tipo</option>
+                    <option value="Auto">Auto</option>
+                    <option value="Camioneta">Camioneta</option>
+                    <option value="Moto">Moto</option>
+                    <option value="Camion">Camión</option>
+                    <option value="Bus">Bus</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="marca">Marca:</label>
+                <input type="text" id="marca" name="marca" required>
+            </div>
+            <div class="form-group">
+                <label for="modelo">Modelo:</label>
+                <input type="text" id="modelo" name="modelo" required>
+            </div>
+            <div class="form-group">
+                <label for="patente">Placa (Patente):</label>
+                <input type="text" id="patente" name="patente" required>
+            </div>
+            <div class="form-group">
+                <label for="color">Color (Opcional):</label>
+                <input type="text" id="color" name="color">
+            </div>
+            <div class="form-group">
+                <label for="anio">Año (Opcional):</label>
+                <input type="number" id="anio" name="anio" min="1900" max="2099">
+            </div>
+            <div class="form-group">
+                <label for="imagen_url">URL de Imagen del Vehículo (Opcional):</label>
+                <input type="url" id="imagen_url" name="imagen_url" placeholder="Ej: https://example.com/auto.png">
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Registrar Vehículo">
+            </div>
+        </form>
+
+        <div id="message" class="message" style="display: none;"></div>
+
+        <a href="/dashboard" class="btn-discord" style="background-color: #007bff; margin-top: 20px;">
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('register-vehicle-form');
+            const messageDiv = document.getElementById('message');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+                messageDiv.textContent = '';
+
+                try {
+                    const response = await fetch('/api/vehicles', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        messageDiv.classList.add('success');
+                        messageDiv.textContent = 'Vehículo registrado exitosamente!';
+                        form.reset();
+                    } else {
+                        messageDiv.classList.add('error');
+                        messageDiv.textContent = result.message || 'Error al registrar el vehículo.';
+                    }
+                } catch (error) {
+                    console.error('Error de red al registrar vehículo:', error);
+                    messageDiv.classList.add('error');
+                    messageDiv.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
+                }
+                messageDiv.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

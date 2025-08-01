@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Personas - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Buscar Personas</h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <h2>Herramienta de Búsqueda de Personas</h2>
+        <p>Busca personas por nombre, RUT, motivo de búsqueda o lugar.</p>
+
+        <form id="search-people-form">
+            <div class="form-group">
+                <label for="search-query">Término de Búsqueda (Nombre, RUT, Motivo, Lugar):</label>
+                <input type="text" id="search-query" name="query" placeholder="Ej: Juan Pérez, 12.345.678-9, Orden de Captura, Santiago">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Buscar Persona">
+            </div>
+        </form>
+
+        <div id="search-message" class="message" style="display: none;"></div>
+
+        <div class="search-results">
+            <h3>Resultados de Búsqueda:</h3>
+            <div id="people-results">
+                <p class="no-results">Usa el formulario para buscar personas.</p>
+            </div>
+        </div>
+
+        <a href="/dashboard" class="btn-discord" style="background-color: #007bff; margin-top: 20px;">
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('search-people-form');
+            const searchInput = document.getElementById('search-query');
+            const peopleResultsDiv = document.getElementById('people-results');
+            const searchMessageDiv = document.getElementById('search-message');
+
+            const displayMessage = (message, type) => {
+                searchMessageDiv.textContent = message;
+                searchMessageDiv.className = `message ${type}`;
+                searchMessageDiv.style.display = 'block';
+            };
+
+            const fetchPeople = async (query = '') => {
+                peopleResultsDiv.innerHTML = '<p class="no-results">Cargando resultados...</p>';
+                searchMessageDiv.style.display = 'none';
+
+                try {
+                    const url = query ? `/api/people/search?query=${encodeURIComponent(query)}` : `/api/people`;
+                    const response = await fetch(url);
+                    const personas = await response.json();
+
+                    if (response.ok) {
+                        peopleResultsDiv.innerHTML = ''; // Limpiar resultados anteriores
+                        if (personas.length > 0) {
+                            personas.forEach(person => {
+                                const card = document.createElement('div');
+                                card.classList.add('result-card');
+                                card.innerHTML = `
+                                    <div class="info">
+                                        <h4>${person.nombreCompleto}</h4>
+                                        <p><strong>RUT:</strong> ${person.rut}</p>
+                                        <p><strong>Edad:</strong> ${person.edad || 'N/A'}</p>
+                                        ${person.motivo_busqueda ? `<p style="color:red; font-weight:bold;">¡PERSONA BUSCADA! - Motivo: ${person.motivo_busqueda}</p>` : ''}
+                                        ${person.descripcion_fisica ? `<p><strong>Descripción Física:</strong> ${person.descripcion_fisica}</p>` : ''}
+                                        ${person.lugar_busqueda ? `<p><strong>Lugar de Búsqueda:</strong> ${person.lugar_busqueda}</p>` : ''}
+                                        <div class="actions" style="margin-top: 10px;">
+                                            ${person.motivo_busqueda || person.descripcion_fisica || person.lugar_busqueda ? 
+                                                `<button class="btn-unmark-wanted" data-id="${person._id}" style="background-color:#ffc107; margin-right: 10px;">Quitar de Buscada</button>` : ''}
+                                            <button class="btn-delete-person" data-id="${person._id}" style="background-color:#dc3545;">Eliminar Persona</button>
+                                        </div>
+                                    </div>
+                                `;
+                                peopleResultsDiv.appendChild(card);
+                            });
+
+                            // Event Listeners para los nuevos botones
+                            document.querySelectorAll('.btn-unmark-wanted').forEach(button => {
+                                button.addEventListener('click', async (e) => {
+                                    const id = e.target.dataset.id;
+                                    if (confirm('¿Estás seguro de que quieres quitar a esta persona de la lista de buscados?')) {
+                                        try {
+                                            const response = await fetch(`/api/people/${id}/unmark-wanted`, {
+                                                method: 'PATCH'
+                                            });
+                                            const result = await response.json();
+                                            if (response.ok) {
+                                                displayMessage('Persona marcada como no buscada.', 'success');
+                                                fetchPeople(searchInput.value.trim()); // Recargar resultados
+                                            } else {
+                                                displayMessage(result.message || 'Error al quitar de buscada.', 'error');
+                                            }
+                                        } catch (error) {
+                                            displayMessage('Error de red.', 'error');
+                                        }
+                                    }
+                                });
+                            });
+
+                            document.querySelectorAll('.btn-delete-person').forEach(button => {
+                                button.addEventListener('click', async (e) => {
+                                    const id = e.target.dataset.id;
+                                    if (confirm('¿Estás seguro de que quieres ELIMINAR esta persona? Esta acción es irreversible y requiere rol de Administrador.')) {
+                                        try {
+                                            const response = await fetch(`/api/people/${id}`, {
+                                                method: 'DELETE'
+                                            });
+                                            const result = await response.json();
+                                            if (response.ok) {
+                                                displayMessage('Persona eliminada exitosamente.', 'success');
+                                                fetchPeople(searchInput.value.trim()); // Recargar resultados
+                                            } else {
+                                                displayMessage(result.message || 'Error al eliminar persona.', 'error');
+                                            }
+                                        } catch (error) {
+                                            displayMessage('Error de red.', 'error');
+                                        }
+                                    }
+                                });
+                            });
+
+                        } else {
+                            peopleResultsDiv.innerHTML = '<p class="no-results">No se encontraron personas con ese criterio.</p>';
+                        }
+                    } else {
+                        displayMessage(personas.message || 'Error al buscar personas.', 'error');
+                        peopleResultsDiv.innerHTML = '<p class="no-results">Error al cargar resultados.</p>';
+                    }
+                } catch (error) {
+                    console.error('Error de red al buscar personas:', error);
+                    displayMessage('No se pudo conectar con el servidor. Intenta de nuevo.', 'error');
+                    peopleResultsDiv.innerHTML = '<p class="no-results">Error de conexión.</p>';
+                }
+            };
+
+            fetchPeople(); 
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const query = searchInput.value.trim();
+                fetchPeople(query);
+            });
+        });
+    </script>
+</body>
+</html>

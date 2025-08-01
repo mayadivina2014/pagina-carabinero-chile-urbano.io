@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Añade o actualiza estas reglas en public/css/style.css si no existen o para ajustarlas */
+        .dashboard-section {
+            background-color: #2c2f33; /* Color de fondo para las secciones */
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: left; /* Asegura que el texto dentro de la sección se alinee a la izquierda */
+        }
+
+        .dashboard-section h3 {
+            color: #7289da; /* Color para los títulos de sección */
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #7289da;
+            padding-bottom: 10px;
+            font-size: 1.6em;
+        }
+
+        .dashboard-section ul {
+            list-style: none; /* Quita los puntos de la lista */
+            padding: 0;
+            margin: 0;
+        }
+
+        .dashboard-section ul li {
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .dashboard-section ul li a {
+            display: inline-block; /* Permite padding y margin a los enlaces */
+            background-color: #4CAF50; /* Color de botón por defecto */
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            width: auto; /* Ajustar ancho al contenido */
+            min-width: 250px; /* Ancho mínimo para consistencia */
+            text-align: center;
+        }
+
+        .dashboard-section ul li a:hover {
+            background-color: #45a049;
+        }
+
+        /* Colores específicos para tipos de botones si quieres diferenciarlos visualmente */
+        .dashboard-section ul li a.btn-vehicles {
+            background-color: #007bff; /* Azul */
+        }
+        .dashboard-section ul li a.btn-vehicles:hover {
+            background-color: #0056b3;
+        }
+
+        .dashboard-section ul li a.btn-fines {
+            background-color: #ffc107; /* Amarillo */
+            color: #333; /* Texto oscuro para contraste */
+        }
+        .dashboard-section ul li a.btn-fines:hover {
+            background-color: #e0a800;
+        }
+         .dashboard-section ul li a.btn-people {
+            background-color: #17a2b8; /* Cyan */
+        }
+        .dashboard-section ul li a.btn-people:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>
+            <img src="/images/Logo.png" alt="Logo del Servidor" style="height: 40px; vertical-align: middle; margin-right: 15px;">
+            Dashboard
+        </h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <h2>¡Bienvenido, <span id="username">Cargando...</span>!</h2>
+        <p>Aquí puedes ver tu información y acceder a las funciones disponibles.</p>
+
+        <div class="user-info-section">
+            <h3>Tu Información de Discord:</h3>
+            <p><strong>ID de Discord:</strong> <span id="discord-id"></span></p>
+            <p><strong>Avatar:</strong> <img id="discord-avatar" src="" alt="Avatar" width="50" height="50" style="border-radius: 50%; vertical-align: middle; margin-left: 10px;"></p>
+            <p><strong>Discriminador:</strong> <span id="discriminator"></span></p>
+
+            <p><strong>¿Eres miembro de nuestro servidor Chile Urbano?:</strong> <span id="is-in-target-guild">Cargando...</span></p>
+
+            <h3>Tus roles en la aplicación:</h3>
+            <ul id="app-roles">
+                <li>Cargando roles...</li>
+            </ul>
+            <p style="margin-top: 20px;">
+                <img src="/images/carabinero_logo.png" alt="Logo Carabineros de Chile" style="height: 40px; vertical-align: middle; margin-right: 15px;">
+                Plataforma oficial de registro y búsqueda.
+            </p>
+        </div>
+
+        <div class="dashboard-section">
+            <h3>Administración de Vehículos</h3>
+            <p>Gestiona los registros de vehículos, su estado de búsqueda y las multas asociadas.</p>
+            <ul>
+                <li><a href="/register-vehicle" id="register-vehicle-link" class="btn-vehicles">Registrar Nuevo Vehículo</a></li>
+                <li><a href="/search-vehicles" id="search-vehicles-link" class="btn-vehicles">Buscar y Gestionar Vehículos</a></li>
+                <li><a href="/add-fine" id="add-fine-link" class="btn-fines">Poner Nueva Multa</a></li>
+                <a href="/modify-fines.html" class="btn-discord">Modificar Multas</a>
+            </ul>
+        </div>
+
+        <div class="dashboard-section">
+            <h3>Administración de Personas</h3>
+            <p>Busca personas y gestiona su estado de búsqueda.</p>
+            <ul>
+                <li><a href="/search-people" id="search-people-link" class="btn-people">Buscar y Gestionar Personas</a></li>
+            </ul>
+        </div>
+        <button id="logout-btn" class="btn-discord">Cerrar Sesión</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const usernameSpan = document.getElementById('username');
+            const discordIdSpan = document.getElementById('discord-id');
+            const discordAvatarImg = document.getElementById('discord-avatar');
+            const discriminatorSpan = document.getElementById('discriminator');
+            const isInTargetGuildSpan = document.getElementById('is-in-target-guild');
+            const appRolesList = document.getElementById('app-roles');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            const TARGET_GUILD_ID = '1318760474090672128';
+
+            logoutBtn.addEventListener('click', () => {
+                window.location.href = '/auth/logout';
+            });
+
+            try {
+                const response = await fetch('/auth/user');
+
+                if (response.ok) {
+                    const user = await response.json();
+                    
+                    usernameSpan.textContent = user.username;
+                    discordIdSpan.textContent = user.discordId;
+                    discriminatorSpan.textContent = user.discriminator;
+                    discordAvatarImg.src = user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png` : 'https://discord.com/assets/f4b1e4c703f8f1412e87.png';
+
+                    const isInGuild = user.guilds && user.guilds.some(guild => guild.id === TARGET_GUILD_ID);
+                    isInTargetGuildSpan.textContent = isInGuild ? 'Sí' : 'No';
+                    isInTargetGuildSpan.style.color = isInGuild ? 'green' : 'red';
+
+                    appRolesList.innerHTML = '';
+                    if (user.appRoles && user.appRoles.length > 0) {
+                        user.appRoles.forEach(role => {
+                            const li = document.createElement('li');
+                            li.textContent = role;
+                            appRolesList.appendChild(li);
+                        });
+                    } else {
+                        appRolesList.innerHTML = '<li>No tienes roles específicos de la aplicación asignados.</li>';
+                    }
+
+                    // Ocultar/mostrar enlaces según roles (ejemplo, puedes expandir esto)
+                    // const hasRegistradorVehiculos = user.appRoles.includes('registrador_vehiculos') || user.appRoles.includes('admin');
+                    // document.getElementById('register-vehicle-link').style.display = hasRegistradorVehiculos ? 'inline-block' : 'none';
+                    // document.getElementById('add-fine-link').style.display = hasRegistradorVehiculos ? 'inline-block' : 'none';
+
+                    // const hasOperadorBusqueda = user.appRoles.includes('operador_busqueda') || user.appRoles.includes('admin');
+                    // // Aquí, las páginas de búsqueda son más generales, podrías ocultar botones específicos dentro de ellas si no tienen el rol.
+                    // // Por ejemplo, ocultar los botones de "eliminar" o "quitar de buscada" si no tienen el rol adecuado en search-vehicles.html y search-people.html
+                    // // El backend ya protege las rutas, esto es solo para la UI.
+
+                } else if (response.status === 401) {
+                    console.warn('Usuario no autenticado, redirigiendo al inicio.');
+                    window.location.href = '/';
+                } else {
+                    console.error('Error al obtener información del usuario:', response.status, response.statusText);
+                    alert('Hubo un problema al cargar tu información. Por favor, intenta de nuevo.');
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error de red o fetching:', error);
+                alert('No se pudo conectar con el servidor. Por favor, revisa tu conexión.');
+                window.location.href = '/';
+            }
+        });
+    </script>
+</body>
+</html>

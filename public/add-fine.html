@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poner Multa - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Poner Nueva Multa</h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <h2>Formulario para Añadir Multa</h2>
+        <p>Completa los detalles de la multa para un vehículo específico.</p>
+
+        <form id="add-fine-form">
+            <h3>Datos de la Multa</h3>
+            <div class="form-group">
+                <label for="patente">Patente del Vehículo:</label>
+                <input type="text" id="patente" name="patente" placeholder="Ej: ABCD12" required>
+            </div>
+            <div class="form-group">
+                <label for="motivo">Motivo de la Multa:</label>
+                <input type="text" id="motivo" name="motivo" placeholder="Ej: Exceso de velocidad" required>
+            </div>
+            <div class="form-group">
+                <label for="lugar">Lugar de la Infracción:</label>
+                <input type="text" id="lugar" name="lugar" placeholder="Ej: Av. Principal 123, Santiago" required>
+            </div>
+            <div class="form-group">
+                <label for="monto">Monto ($):</label>
+                <input type="number" id="monto" name="monto" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="descripcion">Descripción Adicional (Opcional):</label>
+                <textarea id="descripcion" name="descripcion" rows="3" placeholder="Detalles adicionales de la infracción..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Registrar Multa">
+            </div>
+        </form>
+
+        <div id="message" class="message" style="display: none;"></div>
+
+        <a href="/dashboard" class="btn-discord" style="background-color: #007bff; margin-top: 20px;">
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('add-fine-form');
+            const messageDiv = document.getElementById('message');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                data.monto = parseFloat(data.monto); // Asegurar que el monto sea un número
+
+                // Opcional: convertir patente a mayúsculas antes de enviar, si tu backend lo espera así
+                data.patente = data.patente.toUpperCase(); 
+
+                messageDiv.style.display = 'none';
+                messageDiv.className = 'message';
+                messageDiv.textContent = '';
+
+                try {
+                    // La ruta es ahora /api/vehicles/fines y la patente va en el body
+                    const response = await fetch('/api/vehicles/fines', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        messageDiv.classList.add('success');
+                        messageDiv.textContent = 'Multa registrada exitosamente!';
+                        form.reset(); // Limpiar el formulario
+                    } else {
+                        // El servidor devolvió un error (ej. 400, 404, 500)
+                        messageDiv.classList.add('error');
+                        // Muestra el mensaje de error del backend si está disponible, o un genérico
+                        messageDiv.textContent = result.message || 'Error al registrar la multa.';
+                    }
+                } catch (error) {
+                    // Errores de red, JSON inválido, etc.
+                    console.error('Error de red al registrar multa:', error);
+                    messageDiv.classList.add('error');
+                    messageDiv.textContent = 'No se pudo conectar con el servidor. Intenta de nuevo.';
+                }
+                messageDiv.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>

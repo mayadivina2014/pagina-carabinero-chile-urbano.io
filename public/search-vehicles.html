@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Vehículos - Chile Urbano</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Estilos específicos para esta página */
+        #searchResults {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .vehicle-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .vehicle-card h3 {
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .vehicle-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .vehicle-card p strong {
+            color: #333;
+        }
+        .vehicle-card .owner-info {
+            font-size: 0.9em;
+            color: #777;
+            margin-top: 10px;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+        .fine-list {
+            margin-top: 10px;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+        .fine-list h4 {
+            margin-bottom: 5px;
+            color: #444;
+        }
+        .fine-item {
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .fine-item.paid {
+            background-color: #e6ffe6;
+            border-color: #c6f6c6;
+        }
+        .fine-item .status {
+            font-weight: bold;
+        }
+        .fine-item .status.paid {
+            color: green;
+        }
+        .fine-item .status.unpaid {
+            color: red;
+        }
+        .form-group.search-group {
+            display: flex;
+            gap: 10px; /* Espacio entre el input y el botón */
+            align-items: center;
+        }
+        .form-group.search-group input[type="text"] {
+            flex-grow: 1; /* El input tomará el espacio restante */
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <h1>Buscar Vehículos</h1>
+        <a href="/" class="btn-discord-home">
+            <img src="https://assets-global.website-files.com/6257ade9f7df67d37e29b139/6257ae20ed94244f7776a38d_58482cddcefd1f2c0b4bdc08.png" alt="Discord Logo">
+            Inicio
+        </a>
+    </div>
+
+    <div class="container">
+        <h2>Ingresa Patente, RUT o Nombre del Propietario</h2>
+
+        <div class="form-group search-group">
+            <input type="text" id="search-input" placeholder="Ej: ABCD12 o 12345678-9 o Juan Pérez">
+            <button id="search-button" class="btn">Buscar</button>
+        </div>
+
+        <div id="loadingMessage" style="display: none; text-align: center; margin-top: 20px;">
+            Cargando resultados...
+        </div>
+        <div id="searchResults">
+            </div>
+
+        <a href="/dashboard" class="btn-discord" style="background-color: #007bff; margin-top: 20px;">
+            Volver al Dashboard
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const searchResultsDiv = document.getElementById('searchResults');
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            // Función para mostrar mensajes
+            function showMessage(msg, type = 'info') {
+                searchResultsDiv.innerHTML = `<p class="message ${type}">${msg}</p>`;
+            }
+
+            // Función para realizar la búsqueda
+            async function performSearch() {
+                const query = searchInput.value.trim();
+
+                if (query === '') {
+                    showMessage('Por favor, ingresa una patente, RUT o nombre para buscar.', 'info');
+                    return;
+                }
+
+                loadingMessage.style.display = 'block';
+                searchResultsDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+                try {
+                    // ¡IMPORTANTE: Cambiado de 'q' a 'query' para que coincida con el backend!
+                    const response = await fetch(`/api/vehicles/search?query=${encodeURIComponent(query)}`);
+                    const vehicles = await response.json();
+
+                    loadingMessage.style.display = 'none';
+
+                    if (response.ok) {
+                        if (vehicles.length > 0) {
+                            vehicles.forEach(vehicle => {
+                                const vehicleCard = document.createElement('div');
+                                vehicleCard.classList.add('vehicle-card');
+                                
+                                let finesHtml = '';
+                                if (vehicle.multas && vehicle.multas.length > 0) {
+                                    finesHtml = `
+                                        <div class="fine-list">
+                                            <h4>Multas:</h4>
+                                            ${vehicle.multas.map(fine => `
+                                                <div class="fine-item ${fine.pagada ? 'paid' : 'unpaid'}">
+                                                    <p><strong>Motivo:</strong> ${fine.motivo || 'N/A'}</p>
+                                                    <p><strong>Lugar:</strong> ${fine.lugar || 'N/A'}</p>
+                                                    <p><strong>Monto:</strong> $${fine.monto ? fine.monto.toLocaleString('es-CL') : '0'}</p>
+                                                    <p><strong>Fecha:</strong> ${fine.fecha ? new Date(fine.fecha).toLocaleDateString('es-CL') : 'N/A'}</p>
+                                                    <p><strong>Descripción:</strong> ${fine.descripcion || 'Sin descripción'}</p>
+                                                    <p class="status ${fine.pagada ? 'paid' : 'unpaid'}"><strong>Estado:</strong> ${fine.pagada ? 'Pagada' : 'Pendiente'}</p>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    `;
+                                } else {
+                                    finesHtml = '<p class="fine-list">Este vehículo no tiene multas registradas.</p>';
+                                }
+
+                                vehicleCard.innerHTML = `
+                                    <h3>${vehicle.marca} ${vehicle.modelo} (${vehicle.anio}) - ${vehicle.patente}</h3>
+                                    <p><strong>Color:</strong> ${vehicle.color}</p>
+                                    <p><strong>Tipo:</strong> ${vehicle.tipo_vehiculo || 'No especificado'}</p>
+                                    <p><strong>Estado:</strong> ${vehicle.buscado ? 'BUSCADO' : 'NORMAL'}</p>
+                                    ${vehicle.imagen_url ? `<img src="${vehicle.imagen_url}" alt="Imagen de ${vehicle.patente}" style="max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px;">` : ''}
+                                    <div class="owner-info">
+                                        <h4>Propietario:</h4>
+                                        ${vehicle.propietario ? `
+                                            <p><strong>Nombre:</strong> ${vehicle.propietario.nombreCompleto}</p>
+                                            <p><strong>RUT:</strong> ${vehicle.propietario.rut}</p>
+                                            <p><strong>Contacto:</strong> ${vehicle.propietario.telefono || 'N/A'} / ${vehicle.propietario.email || 'N/A'}</p>
+                                            <p><strong>Dirección:</strong> ${vehicle.propietario.direccion || 'N/A'}</p>
+                                        ` : '<p>Propietario no asignado.</p>'}
+                                    </div>
+                                    ${finesHtml}
+                                `;
+                                searchResultsDiv.appendChild(vehicleCard);
+                            });
+                        } else {
+                            showMessage('No se encontraron vehículos que coincidan con la búsqueda.', 'info');
+                        }
+                    } else {
+                        // Si la respuesta no es OK (ej. 400, 404, 500)
+                        showMessage(vehicles.message || 'Error al realizar la búsqueda.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error de red al buscar vehículos:', error);
+                    loadingMessage.style.display = 'none';
+                    showMessage('No se pudo conectar con el servidor. Intenta de nuevo.', 'error');
+                }
+            }
+
+            // Event Listeners
+            searchButton.addEventListener('click', performSearch);
+
+            searchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Evitar que el formulario se envíe si está dentro de uno
+                    performSearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
