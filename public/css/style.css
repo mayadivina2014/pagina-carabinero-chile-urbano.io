@@ -1,184 +1,269 @@
-/* Estilos generales */
+/* Colores de ejemplo: */
+/* Verde para la barra superior: #4CAF50 (un verde vibrante) o #28a745 (un verde más oscuro, Bootstrap-like) */
+/* Fondo gris claro: #f8f9fa (gris muy claro, casi blanco) o #e9ecef (un gris un poco más notorio) */
+/* Fondo blanco: #ffffff */
+
 body {
-    font-family: 'Arial', sans-serif;
-    background-color: #1e1e1e; /* Fondo oscuro */
-    color: #e0e0e0; /* Texto claro */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    line-height: 1.6;
+    /* Fondo de la página: Blanco (#ffffff) o Gris claro (#f8f9fa) */
+    background-color: #f8f9fa; /* Puedes cambiar a #ffffff para blanco puro */
+    color: #333; /* Color de texto general */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Contenedor principal para la página de inicio */
+.top-bar {
+    /* Barra superior: Verde */
+    background-color: #28a745; /* Un verde oscuro, puedes probar #4CAF50 para un verde más brillante */
+    color: white; /* Texto blanco en la barra superior */
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.top-bar h1 {
+    margin: 0;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.top-bar .discord-logo-btn {
+    height: 20px; /* Tamaño del logo de Discord en el botón de iniciar sesión */
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.btn-discord-login {
+    background-color: #7289da; /* Color original de Discord para el botón */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.btn-discord-login:hover {
+    background-color: #6778c4;
+}
+
 .main-content-wrapper {
     flex-grow: 1;
     display: flex;
     justify-content: center;
-    align-items: center; /* Centrar verticalmente también */
-    padding: 30px 20px; /* Padding para evitar que el contenido toque los bordes */
+    align-items: center;
+    padding: 20px;
 }
 
-/* Tarjeta principal para la página de inicio */
 .main-card {
-    max-width: 900px;
-    background-color: #282b30; /* Un gris ligeramente más claro que el fondo */
-    padding: 40px;
+    background-color: white;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 40px;
     text-align: center;
-    width: 100%; /* Ocupa todo el ancho disponible */
+    max-width: 800px;
+    width: 100%;
+    margin: 20px;
+    box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
 }
 
-.main-card h2 {
-    color: #7289da;
-    margin-bottom: 15px;
-    font-size: 2.2em;
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 28px;
 }
 
-.main-card .tagline {
-    font-size: 1.1em;
-    color: #bbb;
+.tagline {
+    font-size: 18px;
+    color: #555;
     margin-bottom: 30px;
 }
 
-/* Sección de llamada a la acción para autenticación */
 .auth-call-to-action {
-    background-color: #36393f;
+    background-color: #f0f2f5;
+    padding: 25px;
     border-radius: 8px;
-    padding: 30px;
     margin-bottom: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e0e0e0;
 }
 
 .auth-call-to-action h3 {
-    color: #fff;
-    font-size: 1.8em;
+    color: #333;
     margin-top: 0;
-    margin-bottom: 15px;
+    font-size: 22px;
 }
 
 .auth-call-to-action p {
-    color: #ccc;
-    margin-bottom: 25px;
-    line-height: 1.7;
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 20px;
 }
 
 .btn-discord-cta {
-    background-color: #5865f2; /* Azul Discord vibrante */
+    background-color: #7289da;
     color: white;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1.1em;
+    padding: 12px 25px;
+    border-radius: 5px;
     text-decoration: none;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    display: inline-flex; /* Permite alinear el logo y el texto */
-    align-items: center;
-    gap: 10px;
     font-weight: bold;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+    min-width: 250px; /* Asegura un ancho mínimo para el botón */
 }
 
 .btn-discord-cta:hover {
-    background-color: #4752c4;
-    transform: translateY(-2px);
+    background-color: #6778c4;
 }
 
-.discord-logo-btn {
-    height: 24px; /* Tamaño del logo de Discord dentro del botón */
-}
-
-/* Sección de Información Pública */
+/* Public Info Section */
 .public-info-section {
-    background-color: #2c2f33;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    text-align: left; /* Alinea el contenido de esta sección a la izquierda */
+    text-align: left;
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 30px;
 }
 
 .public-info-section h3 {
-    color: #99aab5;
-    font-size: 1.5em;
-    margin-top: 0;
+    color: #333;
+    font-size: 22px;
     margin-bottom: 15px;
-    border-bottom: 1px solid #4f545c;
-    padding-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
 }
 
 .public-info-icon {
-    font-size: 1.2em; /* Tamaño para el ícono de escudo o emoji */
-    color: #4CAF50; /* Color verde o el que prefieras para el icono */
+    font-size: 20px;
+    margin-left: 10px;
+    color: #007bff; /* Color azul para el escudo */
 }
 
 .public-info-description {
-    color: #ccc;
-    font-size: 0.95em;
+    font-size: 15px;
+    color: #666;
     margin-bottom: 25px;
 }
 
 .data-display-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Columnas responsivas */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
 .data-block {
-    background-color: #36393f;
+    background-color: #f0f8ff; /* Un azul muy claro para los bloques de datos */
+    border: 1px solid #d0e0ff;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .data-block h4 {
-    color: #7289da;
-    font-size: 1.2em;
+    color: #0056b3;
     margin-top: 0;
     margin-bottom: 15px;
-    border-bottom: 1px solid #4f545c;
-    padding-bottom: 8px;
+    font-size: 18px;
 }
 
 .data-block ul {
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: 0.9em;
 }
 
-.data-block ul li {
-    background-color: #40444b;
-    padding: 10px 15px;
+.data-block li {
+    background-color: #ffffff;
+    border: 1px solid #e9ecef;
     border-radius: 5px;
+    padding: 12px;
     margin-bottom: 10px;
-    border: 1px solid #4f545c;
-    line-height: 1.4;
+    font-size: 15px;
+    color: #444;
 }
 
-.data-block ul li:last-child {
+.data-block li:last-child {
     margin-bottom: 0;
 }
 
-.data-block ul li p {
-    margin: 0;
-    color: #e0e0e0;
+.data-block li strong {
+    color: #222;
 }
 
+/* Estilos para el botón de la multa (ej. en add-fine.html o modify-fines.html) */
+.btn-primary {
+    background-color: #007bff; /* Azul */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
 
-/* --- Estilos compartidos con Dashboard y otras páginas (asegúrate de que estén aquí también) --- */
+.btn-primary:hover {
+    background-color: #0056b3;
+}
 
+.btn-danger {
+    background-color: #dc3545; /* Rojo */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    margin-top: 15px; /* Ejemplo de margen */
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Mensajes de error o éxito */
+.message-error {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.message-success {
+    color: #28a745;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* --- Estilos compartidos con Dashboard y otras páginas --- */
+
+/* La barra superior se redefine aquí para el color verde solicitado */
 .top-bar {
-    background-color: #23272a;
+    background-color: #28a745; /* Verde para la barra superior */
+    color: white;
     padding: 15px 30px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .top-bar h1 {
@@ -195,7 +280,7 @@ body {
     margin-right: 15px;
 }
 
-.btn-discord-login { /* Estilo específico para el botón de login en la top-bar */
+.btn-discord-login {
     background-color: #5865f2;
     color: white;
     padding: 10px 20px;
@@ -213,22 +298,22 @@ body {
     background-color: #4752c4;
 }
 
-/* Estilos para el contenedor general de las páginas internas (dashboard, búsqueda, registro) */
+/* Contenedor principal para las páginas internas (dashboard, búsqueda, registro) */
 .container {
     max-width: 900px;
     margin: 30px auto;
-    background-color: #282b30;
+    /* Fondo de la tarjeta en las páginas internas, también blanco */
+    background-color: white;
     padding: 30px;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Sombra más suave */
     text-align: center;
     flex-grow: 1;
+    color: #333; /* Color de texto para las tarjetas blancas */
 }
 
-/* ... (El resto de tus estilos ya existentes para forms, messages, search-results, modals, y dashboard-sections) ... */
-
 /* Botones genéricos (usados en dashboard y otras páginas) */
-.btn-discord { /* Este es el botón "Cerrar Sesión" y similares */
+.btn-discord {
     background-color: #7289da;
     color: white;
     padding: 12px 25px;
@@ -246,7 +331,7 @@ body {
     background-color: #677eb9;
 }
 
-.btn-discord-home { /* Botón "Inicio" en el dashboard */
+.btn-discord-home {
     background-color: #5865f2;
     color: white;
     padding: 10px 20px;
@@ -269,338 +354,28 @@ body {
 }
 
 /* Secciones de Información y Funciones (Dashboard) */
-.user-info-section {
-    background-color: #2c2f33;
-    border-radius: 8px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    text-align: left;
-}
-
-.user-info-section h3 {
-    color: #99aab5;
-    margin-top: 0;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #4f545c;
-    padding-bottom: 10px;
-}
-
-.user-info-section p {
-    margin-bottom: 8px;
-}
-
-.user-info-section ul {
-    list-style: none;
-    padding: 0;
-}
-
-.user-info-section ul li {
-    background-color: #36393f;
-    padding: 8px 12px;
-    margin-bottom: 5px;
-    border-radius: 4px;
-}
-
-/* Formularios */
-form {
-    background-color: #2c2f33;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    margin-top: 25px;
-    text-align: left;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #99aab5;
-    font-weight: bold;
-}
-
-.form-group input[type="text"],
-.form-group input[type="password"],
-.form-group input[type="number"],
-.form-group input[type="email"],
-.form-group textarea,
-.form-group select {
-    width: calc(100% - 20px);
-    padding: 10px;
-    border: 1px solid #4f545c;
-    border-radius: 5px;
-    background-color: #36393f;
-    color: #e0e0e0;
-    font-size: 1em;
-}
-
-.form-group input[type="submit"] {
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease;
-    width: auto;
-    display: inline-block;
-    margin-top: 10px;
-}
-
-.form-group input[type="submit"]:hover {
-    background-color: #45a049;
-}
-
-/* Mensajes de feedback */
-.message {
-    padding: 15px;
-    margin-top: 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.message.success {
-    background-color: #28a745;
-    color: white;
-}
-
-.message.error {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* Estilos para la sección de resultados de búsqueda */
-.search-results {
-    margin-top: 30px;
-    background-color: #2c2f33;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    text-align: left;
-}
-
-.search-results h3 {
-    color: #99aab5;
-    border-bottom: 1px solid #4f545c;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-}
-
-.result-card {
-    background-color: #36393f;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.vehicle-image {
-    width: 150px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 5px;
-    flex-shrink: 0;
-}
-
-.info {
-    flex-grow: 1;
-}
-
-.info h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    color: #7289da;
-}
-
-.info p {
-    margin-bottom: 5px;
-}
-
-.info ul {
-    list-style: none;
-    padding: 0;
-    margin: 15px 0 0 0;
-    border-top: 1px dashed #4f545c;
-    padding-top: 15px;
-}
-
-.info ul li {
-    background-color: #40444b;
-    padding: 10px 15px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    border: 1px solid #4f545c;
-    line-height: 1.4;
-    font-size: 0.95em;
-}
-
-.actions {
-    margin-top: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.actions button, .fine-actions button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    color: white;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease;
-}
-
-.actions button.btn-toggle-buscado[style*="background-color:#ffc107"] {
-    background-color: #ffc107;
-    color: #333;
-}
-.actions button.btn-toggle-buscado[style*="background-color:#ffc107"]:hover {
-    background-color: #e0a800;
-}
-.actions button.btn-toggle-buscado[style*="background-color:#28a745"] {
-    background-color: #28a745;
-}
-.actions button.btn-toggle-buscado[style*="background-color:#28a745"]:hover {
-    background-color: #218838;
-}
-
-.actions button.btn-delete-vehicle, .actions button.btn-delete-person {
-    background-color: #dc3545;
-}
-.actions button.btn-delete-vehicle:hover, .actions button.btn-delete-person:hover {
-    background-color: #c82333;
-}
-
-.fine-actions {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.fine-actions button {
-    padding: 6px 10px;
-    font-size: 0.8em;
-}
-.fine-actions button.btn-pay-fine {
-    background-color: #17a2b8;
-}
-.fine-actions button.btn-pay-fine:hover {
-    background-color: #138496;
-}
-.fine-actions button.btn-edit-fine {
-    background-color: #007bff;
-}
-.fine-actions button.btn-edit-fine:hover {
-    background-color: #0056b3;
-}
-
-.actions button.btn-unmark-wanted {
-    background-color: #ffc107;
-    color: #333;
-}
-.actions button.btn-unmark-wanted:hover {
-    background-color: #e0a800;
-}
-
-.no-results {
-    color: #99aab5;
-    font-style: italic;
-    text-align: center;
-    padding: 20px;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.6);
-    padding-top: 60px;
-}
-
-.modal-content {
-    background-color: #2c2f33;
-    margin: 5% auto;
-    padding: 30px;
-    border: 1px solid #4f545c;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 500px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
-    position: relative;
-    text-align: left;
-}
-
-.modal-content h4 {
-    color: #7289da;
-    margin-top: 0;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.modal-content .form-group input[type="submit"],
-.modal-content button[type="submit"] {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
-    font-size: 1.1em;
-}
-
-.close-button {
-    color: #aaa;
-    float: right;
-    font-size: 32px;
-    font-weight: bold;
-    position: absolute;
-    right: 20px;
-    top: 10px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.close-button:hover,
-.close-button:focus {
-    color: #fff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-/* Dashboard organizado - Secciones */
 .dashboard-section {
-    background-color: #2c2f33;
+    /* Fondo de las secciones del dashboard, también blanco */
+    background-color: white;
     border-radius: 8px;
     padding: 25px;
     margin-bottom: 25px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más suave */
     text-align: left;
+    color: #333; /* Color de texto para las secciones blancas */
 }
 
 .dashboard-section h3 {
-    color: #7289da;
+    color: #333; /* Texto oscuro para los encabezados */
     margin-top: 0;
     margin-bottom: 20px;
-    border-bottom: 2px solid #7289da;
+    border-bottom: 2px solid #e0e0e0; /* Borde más claro */
     padding-bottom: 10px;
     font-size: 1.6em;
 }
 
 .dashboard-section p {
-    color: #99aab5;
+    color: #555; /* Texto más claro */
     margin-bottom: 20px;
     font-size: 1em;
 }
@@ -661,6 +436,293 @@ form {
 
 .container button#logout-btn {
     margin-top: 30px;
+}
+
+/* Formularios */
+form {
+    /* Fondo de los formularios, también blanco */
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más suave */
+    margin-top: 25px;
+    text-align: left;
+    color: #333; /* Color de texto para los formularios */
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333; /* Texto oscuro para las etiquetas */
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="email"],
+.form-group textarea,
+.form-group select {
+    width: calc(100% - 20px);
+    padding: 10px;
+    border: 1px solid #ccc; /* Borde más claro */
+    border-radius: 5px;
+    background-color: #f8f8f8; /* Fondo más claro para inputs */
+    color: #333; /* Texto oscuro en inputs */
+    font-size: 1em;
+}
+
+.form-group input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease;
+    width: auto;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.form-group input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Mensajes de feedback (ya estaban bien con colores contrastantes) */
+.message {
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.message.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.message.error {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Estilos para la sección de resultados de búsqueda */
+.search-results {
+    margin-top: 30px;
+    /* Fondo de los resultados de búsqueda, también blanco */
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra más suave */
+    text-align: left;
+    color: #333; /* Color de texto para los resultados */
+}
+
+.search-results h3 {
+    color: #333; /* Texto oscuro para los encabezados */
+    border-bottom: 1px solid #e0e0e0; /* Borde más claro */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.result-card {
+    /* Fondo de cada tarjeta de resultado, también blanco */
+    background-color: #f8f8f8; /* Ligeramente diferente para distinguirse */
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Sombra más suave */
+}
+
+.vehicle-image {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+
+.info {
+    flex-grow: 1;
+}
+
+.info h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #007bff; /* Azul para los títulos de resultados */
+}
+
+.info p {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.info ul {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 0 0;
+    border-top: 1px dashed #e0e0e0; /* Borde más claro */
+    padding-top: 15px;
+}
+
+.info ul li {
+    background-color: #ffffff; /* Fondo de los ítems de lista */
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #eee; /* Borde más claro */
+    line-height: 1.4;
+    font-size: 0.95em;
+    color: #444;
+}
+
+.actions {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.actions button, .fine-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+/* Los colores de los botones de acción se mantienen para funcionalidad */
+.actions button.btn-toggle-buscado[style*="background-color:#ffc107"] {
+    background-color: #ffc107;
+    color: #333;
+}
+.actions button.btn-toggle-buscado[style*="background-color:#ffc107"]:hover {
+    background-color: #e0a800;
+}
+.actions button.btn-toggle-buscado[style*="background-color:#28a745"] {
+    background-color: #28a745;
+}
+.actions button.btn-toggle-buscado[style*="background-color:#28a745"]:hover {
+    background-color: #218838;
+}
+
+.actions button.btn-delete-vehicle, .actions button.btn-delete-person {
+    background-color: #dc3545;
+}
+.actions button.btn-delete-vehicle:hover, .actions button.btn-delete-person:hover {
+    background-color: #c82333;
+}
+
+.fine-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.fine-actions button {
+    padding: 6px 10px;
+    font-size: 0.8em;
+}
+.fine-actions button.btn-pay-fine {
+    background-color: #17a2b8;
+}
+.fine-actions button.btn-pay-fine:hover {
+    background-color: #138496;
+}
+.fine-actions button.btn-edit-fine {
+    background-color: #007bff;
+}
+.fine-actions button.btn-edit-fine:hover {
+    background-color: #0056b3;
+}
+
+.actions button.btn-unmark-wanted {
+    background-color: #ffc107;
+    color: #333;
+}
+.actions button.btn-unmark-wanted:hover {
+    background-color: #e0a800;
+}
+
+.no-results {
+    color: #555;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: white; /* Fondo blanco para el modal */
+    margin: 5% auto;
+    padding: 30px;
+    border: 1px solid #ccc; /* Borde más claro */
+    border-radius: 10px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2); /* Sombra más suave */
+    position: relative;
+    text-align: left;
+    color: #333; /* Texto oscuro para el modal */
+}
+
+.modal-content h4 {
+    color: #007bff; /* Azul para el título del modal */
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-content .form-group input[type="submit"],
+.modal-content button[type="submit"] {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 1.1em;
+}
+
+.close-button {
+    color: #555; /* Color más oscuro para el botón de cerrar */
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #333; /* Se oscurece un poco al pasar el mouse */
+    text-decoration: none;
+    cursor: pointer;
 }
 
 /* Responsive adjustments */

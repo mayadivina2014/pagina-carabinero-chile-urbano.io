@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chile Urbano - Plataforma de Registro de Vehículos</title>
     <link rel="stylesheet" href="/css/style.css">
-    </head>
+</head>
 <body>
     <div class="top-bar">
         <h1>
-            <img src="/images/Logo.png" alt="Logo Chile Urbano" style="height: 40px; vertical-align: middle; margin-right: 15px;">
+            <img src="/images/Logo_pagina.png" alt="Logo Chile Urbano" style="height: 40px; vertical-align: middle; margin-right: 15px;">
             Chile Urbano
         </h1>
         <a href="/auth/discord" class="btn-discord-login">
@@ -126,7 +126,7 @@
                 if (response.ok && fines.length > 0) {
                     recentFinesList.innerHTML = fines.map(f => `
                         <li>
-                            <p><strong>Patente: ${f.patente}</strong> (Propietario: ${f.propietarioNombre || 'N/A'})</p>
+                            <p><strong>Patente: ${f.patente}</strong> (Propietario: ${f.propietario ? f.propietario.nombreCompleto : 'N/A'})</p>
                             <p>Motivo: ${f.motivo} - Monto: $${f.monto}</p>
                             <p>Fecha: ${new Date(f.fecha).toLocaleDateString()}</p>
                         </li>
