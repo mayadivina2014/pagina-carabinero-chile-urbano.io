@@ -1,7 +1,6 @@
-// app.js (completo y corregido)
-
+// Cargar variables de entorno al principio
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
+    require('dotenv').config();
 }
 
 const express = require('express');
@@ -12,7 +11,12 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const MongoStore = require('connect-mongo');
 
+// Importar modelos
 const User = require('./models/User');
+const Vehiculo = require('./models/Vehiculo');
+const Persona = require('./models/Persona');
+
+// Importar rutas
 const publicRoutes = require('./routes/public');
 const vehiclesRoutes = require('./routes/vehicles');
 const authRoutes = require('./routes/auth');
@@ -20,32 +24,37 @@ const peopleRoutes = require('./routes/people');
 
 const app = express();
 
+// ** Conexión a la base de datos MongoDB **
 const mongoURI = process.env.MONGO_URI;
 
 console.log('Intentando conectar a MongoDB...');
 mongoose.connect(mongoURI)
-  .then(() => console.log('✅ MongoDB Connected...'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+    .then(() => console.log('✅ MongoDB Connected...'))
+    .catch(err => console.error('❌ MongoDB connection error:', err));
 
+
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    collectionName: 'sessions',
-    ttl: 14 * 24 * 60 * 60
-  }),
-  cookie: {
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production'
-  }
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: 'sessions',
+        ttl: 14 * 24 * 60 * 60
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production'
+    }
 }));
 
+
+// Configuración de Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -54,81 +63,110 @@ const ROL_CARABINERO_ID = "1334916424694632601";
 const ROL_PDI_ID = "1339366030836760671";
 const ROL_MUNI_LA_FLORIDA_ID = "1339366471368835193";
 
-// Parsear admins por usuario desde env, cuidando espacios
+// Parsear IDs de administradores desde las variables de entorno
 const adminUserIds = process.env.DISCORD_ADMIN_USER_IDS
-  ? process.env.DISCORD_ADMIN_USER_IDS.split(',').map(id => id.trim())
-  : [];
+    ? process.env.DISCORD_ADMIN_USER_IDS.split(',').map(id => id.trim())
+    : [];
 
-// Función para verificar si usuario tiene al menos uno de los roles permitidos
+// Función para verificar si el usuario tiene al menos uno de los roles permitidos
 const hasRole = (user, roleIds) => {
-  if (!user || !user.appRoles || !Array.isArray(user.appRoles)) {
-    return false;
-  }
-  const rolesToCheck = Array.isArray(roleIds) ? roleIds : [roleIds];
-  return user.appRoles.some(userRoleId => rolesToCheck.includes(userRoleId));
+    if (!user || !user.appRoles || !Array.isArray(user.appRoles)) {
+        return false;
+    }
+    const rolesToCheck = Array.isArray(roleIds) ? roleIds : [roleIds];
+    return user.appRoles.some(userRoleId => rolesToCheck.includes(userRoleId));
 };
+
 
 // Passport Discord Strategy
 passport.use(new DiscordStrategy({
-  clientID: process.env.DISCORD_CLIENT_ID,
-  clientSecret: process.env.DISCORD_CLIENT_SECRET,
-  callbackURL: process.env.DISCORD_CALLBACK_URL,
-  scope: ['identify', 'guilds', 'guilds.members.read']
+    clientID: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: process.env.DISCORD_CALLBACK_URL,
+    scope: ['identify', 'guilds', 'guilds.members.read']
 },
-  async (accessToken, refreshToken, profile, done) => {
+async (accessToken, refreshToken, profile, done) => {
     try {
-      let user = await User.findOne({ discordId: profile.id });
-      let appRoles = [];
+        console.log('➡️ Passport Discord Strategy: Callback recibido.');
+        console.log('   Discord ID:', profile.id);
+        
+        let user = await User.findOne({ discordId: profile.id });
 
-      const guildId = process.env.DISCORD_TARGET_GUILD_ID;
-      const targetGuild = profile.guilds.find(g => g.id === guildId);
+        // Extraer roles del servidor específico
+        let appRoles = [];
+        const guildId = process.env.DISCORD_TARGET_GUILD_ID;
+        const targetGuild = profile.guilds.find(g => g.id === guildId);
 
-      if (targetGuild && targetGuild.roles) {
-        appRoles = targetGuild.roles;
-      }
+        if (targetGuild && targetGuild.roles) {
+            appRoles = targetGuild.roles;
+            console.log('✅ Roles encontrados en el servidor:', appRoles);
+        } else {
+            console.warn('⚠️ Usuario no es miembro del servidor o no se encontraron roles.');
+        }
 
-      if (user) {
-        user.username = profile.username;
-        user.discriminator = profile.discriminator;
-        user.avatar = profile.avatar;
-        user.guilds = profile.guilds;
-        user.appRoles = appRoles;
-        await user.save();
-        return done(null, user);
-      } else {
-        const newUser = new User({
-          discordId: profile.id,
-          username: profile.username,
-          discriminator: profile.discriminator,
-          avatar: profile.avatar,
-          guilds: profile.guilds || [],
-          appRoles: appRoles,
-        });
-        await newUser.save();
-        return done(null, newUser);
-      }
+        if (user) {
+            console.log('✅ Usuario encontrado en la base de datos:', user.username);
+            // Actualizar datos y roles
+            user.username = profile.username;
+            user.discriminator = profile.discriminator;
+            user.avatar = profile.avatar;
+            user.guilds = profile.guilds;
+            user.appRoles = appRoles;
+            await user.save();
+            console.log('✅ Usuario actualizado y guardado. Roles guardados:', user.appRoles);
+            return done(null, user);
+        } else {
+            console.log('➕ Usuario no encontrado. Creando nuevo usuario...');
+            const newUser = new User({
+                discordId: profile.id,
+                username: profile.username,
+                discriminator: profile.discriminator,
+                avatar: profile.avatar,
+                guilds: profile.guilds || [],
+                appRoles: appRoles,
+            });
+            await newUser.save();
+            console.log('✅ Nuevo usuario creado y guardado. Roles guardados:', newUser.appRoles);
+            return done(null, newUser);
+        }
     } catch (err) {
-      console.error("❌ Error grave durante autenticación Discord:", err);
-      return done(err, null);
+        console.error("❌ Error grave durante la autenticación de Discord:", err);
+        return done(err, null);
     }
-  }));
+}));
 
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+    console.log('➡️ Serializando usuario:', user.id);
+    done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err, null);
-  }
+    try {
+        console.log('⬅️ Deserializando usuario por ID:', id);
+        const user = await User.findById(id);
+        if (user) {
+            console.log('✅ Usuario deserializado exitosamente:', user.username);
+        } else {
+            console.error('❌ Error: Usuario no encontrado durante la deserialización.');
+        }
+        done(null, user);
+    } catch (err) {
+        console.error('❌ Error durante la deserialización:', err);
+        done(err, null);
+    }
 });
 
+
+// Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Rutas públicas y autenticación
+
+// Rutas de la aplicación (con chequeo de roles mejorado)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Usar los routers
 app.use('/api/public', publicRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/vehicles', vehiclesRoutes);
@@ -136,76 +174,83 @@ app.use('/api/people', peopleRoutes);
 
 // Ruta Dashboard con chequeo de admin por ID o roles
 app.get('/dashboard', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  // DEBUG: verifica que el discordId esté llegando
-  console.log('Usuario autenticado con Discord ID:', req.user.discordId);
+    // DEBUG: verifica que el discordId esté llegando
+    console.log('Usuario autenticado con Discord ID:', req.user.discordId);
 
-  if (adminUserIds.includes(req.user.discordId)) {
-    return res.sendFile(path.join(__dirname, '../public/dashboard.html'));
-  }
+    if (adminUserIds.includes(req.user.discordId)) {
+        console.log('✅ Acceso concedido al dashboard por ID de administrador.');
+        return res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+    }
 
-  const rolesPermitidos = [ROL_CARABINERO_ID, ROL_PDI_ID, ROL_MUNI_LA_FLORIDA_ID];
+    const rolesPermitidos = [ROL_CARABINERO_ID, ROL_PDI_ID, ROL_MUNI_LA_FLORIDA_ID];
 
-  if (hasRole(req.user, rolesPermitidos)) {
-    return res.sendFile(path.join(__dirname, '../public/dashboard.html'));
-  }
+    if (hasRole(req.user, rolesPermitidos)) {
+        console.log('✅ Acceso concedido al dashboard por rol autorizado.');
+        return res.sendFile(path.join(__dirname, '../public/dashboard.html'));
+    }
 
-  return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
+    console.warn('❌ Acceso denegado al dashboard. El usuario no tiene los permisos requeridos.');
+    return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
 });
 
 // Rutas protegidas ejemplo para registrar vehículos
 app.get('/register-vehicle', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  if (adminUserIds.includes(req.user.discordId) ||
-    hasRole(req.user, [ROL_CARABINERO_ID, ROL_PDI_ID])) {
-    return res.sendFile(path.join(__dirname, '../public/register-vehicle.html'));
-  }
-  return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
+    if (adminUserIds.includes(req.user.discordId) ||
+        hasRole(req.user, [ROL_CARABINERO_ID, ROL_PDI_ID])) {
+        return res.sendFile(path.join(__dirname, '../public/register-vehicle.html'));
+    }
+    return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
 });
 
 app.get('/register-person', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  if (adminUserIds.includes(req.user.discordId) ||
-    hasRole(req.user, [ROL_CARABINERO_ID, ROL_PDI_ID])) {
-    return res.sendFile(path.join(__dirname, '../public/register-person.html'));
-  }
-  return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
+    if (adminUserIds.includes(req.user.discordId) ||
+        hasRole(req.user, [ROL_CARABINERO_ID, ROL_PDI_ID])) {
+        return res.sendFile(path.join(__dirname, '../public/register-person.html'));
+    }
+    return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
 });
 
 app.get('/search-vehicles', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  return res.sendFile(path.join(__dirname, '../public/search-vehicles.html'));
+    return res.sendFile(path.join(__dirname, '../public/search-vehicles.html'));
 });
 
 app.get('/search-people', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  return res.sendFile(path.join(__dirname, '../public/search-people.html'));
+    return res.sendFile(path.join(__dirname, '../public/search-people.html'));
 });
 
 app.get('/modify-fines', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/auth/discord');
+    if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-  return res.sendFile(path.join(__dirname, '../public/modify-fines.html'));
+    return res.sendFile(path.join(__dirname, '../public/modify-fines.html'));
 });
+
 
 // Manejo de errores 404
 app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
+    res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
 });
 
 // Manejo de errores generales
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('¡Algo salió mal en el servidor!');
+    console.error(err.stack);
+    res.status(500).send('¡Algo salió mal en el servidor!');
 });
 
+
+// Inicio del servidor
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Access your app at: http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Access your app at: http://localhost:${PORT}`);
 });
