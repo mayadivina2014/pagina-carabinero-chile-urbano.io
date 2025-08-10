@@ -80,9 +80,10 @@ const hasRole = (user, roleIds) => {
 
 // Passport Discord Strategy
 passport.use(new DiscordStrategy({
-    clientID: process.env.DISCORD_CLIENT_ID,
-    clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_CALLBACK_URL,
+    // Lineas de depuración añadidas para confirmar los valores
+    clientID: (() => { console.log('DEBUG -> CLIENT_ID:', process.env.DISCORD_CLIENT_ID); return process.env.DISCORD_CLIENT_ID; })(),
+    clientSecret: (() => { console.log('DEBUG -> CLIENT_SECRET:', process.env.DISCORD_CLIENT_SECRET); return process.env.DISCORD_CLIENT_SECRET; })(),
+    callbackURL: (() => { console.log('DEBUG -> CALLBACK_URL:', process.env.DISCORD_CALLBACK_URL); return process.env.DISCORD_CALLBACK_URL; })(),
     scope: ['identify', 'guilds', 'guilds.members.read']
 },
 async (accessToken, refreshToken, profile, done) => {
