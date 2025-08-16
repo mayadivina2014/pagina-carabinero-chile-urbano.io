@@ -80,17 +80,16 @@ const hasRole = (user, roleIds) => {
 
 // Passport Discord Strategy
 passport.use(new DiscordStrategy({
-    // Lineas de depuración añadidas para confirmar los valores
-    clientID: (() => { console.log('DEBUG -> CLIENT_ID:', process.env.DISCORD_CLIENT_ID); return process.env.DISCORD_CLIENT_ID; })(),
-    clientSecret: (() => { console.log('DEBUG -> CLIENT_SECRET:', process.env.DISCORD_CLIENT_SECRET); return process.env.DISCORD_CLIENT_SECRET; })(),
-    callbackURL: (() => { console.log('DEBUG -> CALLBACK_URL:', process.env.DISCORD_CALLBACK_URL); return process.env.DISCORD_CALLBACK_URL; })(),
+    clientID: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: process.env.DISCORD_CALLBACK_URL,
     scope: ['identify', 'guilds', 'guilds.members.read']
 },
 async (accessToken, refreshToken, profile, done) => {
     try {
         console.log('➡️ Passport Discord Strategy: Callback recibido.');
         console.log('   Discord ID:', profile.id);
-        
+
         let user = await User.findOne({ discordId: profile.id });
 
         // Extraer roles del servidor específico
@@ -107,7 +106,6 @@ async (accessToken, refreshToken, profile, done) => {
 
         if (user) {
             console.log('✅ Usuario encontrado en la base de datos:', user.username);
-            // Actualizar datos y roles
             user.username = profile.username;
             user.discriminator = profile.discriminator;
             user.avatar = profile.avatar;
@@ -136,23 +134,25 @@ async (accessToken, refreshToken, profile, done) => {
     }
 }));
 
+// Debug extra en serialize/deserialize
 passport.serializeUser((user, done) => {
-    console.log('➡️ Serializando usuario:', user.id);
-    done(null, user.id);
+    console.log("🔹 [serializeUser] Guardando en sesión el ID:", user._id.toString());
+    done(null, user._id.toString());
 });
 
 passport.deserializeUser(async (id, done) => {
+    console.log("🔹 [deserializeUser] Intentando buscar usuario con ID:", id);
     try {
-        console.log('⬅️ Deserializando usuario por ID:', id);
         const user = await User.findById(id);
         if (user) {
-            console.log('✅ Usuario deserializado exitosamente:', user.username);
+            console.log("✅ [deserializeUser] Usuario encontrado:", user.username, "#"+user.discriminator);
+            done(null, user);
         } else {
-            console.error('❌ Error: Usuario no encontrado durante la deserialización.');
+            console.warn("⚠️ [deserializeUser] No se encontró usuario con ese ID en la base de datos.");
+            done(null, null);
         }
-        done(null, user);
     } catch (err) {
-        console.error('❌ Error durante la deserialización:', err);
+        console.error("❌ [deserializeUser] Error buscando usuario:", err);
         done(err, null);
     }
 });
@@ -162,7 +162,7 @@ passport.deserializeUser(async (id, done) => {
 app.use(express.static(path.join(__dirname, '../public')));
 
 
-// Rutas de la aplicación (con chequeo de roles mejorado)
+// Rutas de la aplicación
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
@@ -173,11 +173,10 @@ app.use('/auth', authRoutes);
 app.use('/api/vehicles', vehiclesRoutes);
 app.use('/api/people', peopleRoutes);
 
-// Ruta Dashboard con chequeo de admin por ID o roles
+// Ruta Dashboard
 app.get('/dashboard', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
-    // DEBUG: verifica que el discordId esté llegando
     console.log('Usuario autenticado con Discord ID:', req.user.discordId);
 
     if (adminUserIds.includes(req.user.discordId)) {
@@ -196,7 +195,7 @@ app.get('/dashboard', (req, res) => {
     return res.status(403).sendFile(path.join(__dirname, '../public/403.html'));
 });
 
-// Rutas protegidas ejemplo para registrar vehículos
+// Ejemplos de rutas protegidas
 app.get('/register-vehicle', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/discord');
 
@@ -219,19 +218,16 @@ app.get('/register-person', (req, res) => {
 
 app.get('/search-vehicles', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/discord');
-
     return res.sendFile(path.join(__dirname, '../public/search-vehicles.html'));
 });
 
 app.get('/search-people', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/discord');
-
     return res.sendFile(path.join(__dirname, '../public/search-people.html'));
 });
 
 app.get('/modify-fines', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/discord');
-
     return res.sendFile(path.join(__dirname, '../public/modify-fines.html'));
 });
 
@@ -250,7 +246,6 @@ app.use((err, req, res, next) => {
 
 // Inicio del servidor
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Access your app at: http://localhost:${PORT}`);
