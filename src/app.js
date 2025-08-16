@@ -53,7 +53,6 @@ app.use(session({
     }
 }));
 
-
 // Configuración de Passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -77,8 +76,9 @@ const hasRole = (user, roleIds) => {
     return user.appRoles.some(userRoleId => rolesToCheck.includes(userRoleId));
 };
 
-
+// ==============================
 // Passport Discord Strategy
+// ==============================
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
@@ -90,6 +90,10 @@ async (accessToken, refreshToken, profile, done) => {
         console.log('➡️ Passport Discord Strategy: Callback recibido.');
         console.log('   Discord ID:', profile.id);
 
+        // DEBUG: mostrar todas las guilds que llegan
+        console.log("🔹 Guilds recibidas por Passport:", profile.guilds);
+
+        // Buscar usuario en DB
         let user = await User.findOne({ discordId: profile.id });
 
         // Extraer roles del servidor específico
@@ -97,15 +101,20 @@ async (accessToken, refreshToken, profile, done) => {
         const guildId = process.env.DISCORD_TARGET_GUILD_ID;
         const targetGuild = profile.guilds.find(g => g.id === guildId);
 
-        if (targetGuild && targetGuild.roles) {
-            appRoles = targetGuild.roles;
-            console.log('✅ Roles encontrados en el servidor:', appRoles);
+        if (targetGuild) {
+            if (targetGuild.roles && targetGuild.roles.length > 0) {
+                appRoles = targetGuild.roles;
+                console.log('✅ Roles encontrados en el servidor:', appRoles);
+            } else {
+                console.log('⚠️ Usuario es miembro del servidor, pero no tiene roles o no se pudieron obtener.');
+            }
         } else {
-            console.warn('⚠️ Usuario no es miembro del servidor o no se encontraron roles.');
+            console.log('⚠️ Usuario no es miembro del servidor o guild no encontrada.');
         }
 
         if (user) {
             console.log('✅ Usuario encontrado en la base de datos:', user.username);
+            // Actualizar datos y roles
             user.username = profile.username;
             user.discriminator = profile.discriminator;
             user.avatar = profile.avatar;
@@ -157,10 +166,8 @@ passport.deserializeUser(async (id, done) => {
     }
 });
 
-
 // Servir archivos estáticos
 app.use(express.static(path.join(__dirname, '../public')));
-
 
 // Rutas de la aplicación
 app.get('/', (req, res) => {
@@ -231,7 +238,6 @@ app.get('/modify-fines', (req, res) => {
     return res.sendFile(path.join(__dirname, '../public/modify-fines.html'));
 });
 
-
 // Manejo de errores 404
 app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, '../public/404.html'));
@@ -242,7 +248,6 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('¡Algo salió mal en el servidor!');
 });
-
 
 // Inicio del servidor
 const PORT = process.env.PORT || 3000;
