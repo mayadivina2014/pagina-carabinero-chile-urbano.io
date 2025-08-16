@@ -1,52 +1,48 @@
-// routes/auth.js
 const express = require('express');
 const passport = require('passport');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(mod => mod.default(...args)); // Node-fetch
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/User'); // Ajusta la ruta si es necesario
 
-// Función para obtener roles desde la API de Discord usando el bot token
-async function getGuildMemberRoles(discordId) {
-    const guildId = process.env.DISCORD_TARGET_GUILD_ID;
-    const url = `https://discord.com/api/v10/guilds/${guildId}/members/${discordId}`;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const DISCORD_TARGET_GUILD_ID = process.env.DISCORD_TARGET_GUILD_ID;
 
+// Función para obtener los roles de un miembro en un servidor específico
+async function getGuildMemberRoles(userId) {
     try {
-        const res = await fetch(url, {
-            headers: { Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}` }
+        const response = await fetch(`https://discord.com/api/v10/guilds/${DISCORD_TARGET_GUILD_ID}/members/${userId}`, {
+            headers: {
+                Authorization: `Bot ${DISCORD_BOT_TOKEN}`
+            }
         });
 
-        if (!res.ok) {
-            console.warn(`⚠️ No se pudo obtener roles para el usuario ${discordId}. Status: ${res.status}`);
+        if (!response.ok) {
+            console.warn(`❌ Error al consultar roles de Discord: ${response.status} ${response.statusText}`);
             return [];
         }
 
-        const member = await res.json();
-        return member.roles || [];
+        const memberData = await response.json();
+        return memberData.roles || [];
     } catch (err) {
         console.error('❌ Error al consultar roles de Discord:', err);
         return [];
     }
 }
 
-// Ruta de login con Discord
+// Rutas de autenticación Discord
 router.get('/discord', passport.authenticate('discord'));
 
-// Callback de Discord
 router.get('/discord/callback',
     passport.authenticate('discord', { failureRedirect: '/' }),
     async (req, res) => {
-        try {
-            // Obtener roles desde Discord usando el bot token
+        if (req.user) {
+            // Actualizar roles desde el servidor de Discord
             const roles = await getGuildMemberRoles(req.user.discordId);
             req.user.appRoles = roles;
             await req.user.save();
             console.log('✅ Roles actualizados:', roles);
-
-            res.redirect('/dashboard');
-        } catch (err) {
-            console.error('❌ Error en callback de Discord:', err);
-            res.redirect('/');
         }
+        res.redirect('/dashboard');
     }
 );
 
@@ -54,16 +50,20 @@ router.get('/discord/callback',
 router.get('/logout', (req, res, next) => {
     req.logout(err => {
         if (err) return next(err);
-        req.session.destroy(() => res.redirect('/'));
+        req.session.destroy(() => {
+            res.redirect('/');
+        });
     });
 });
 
-// Obtener info del usuario autenticado
+// Obtener datos del usuario
 router.get('/user', (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: 'No autenticado.' });
-
-    const { discordId, username, discriminator, avatar, guilds, appRoles } = req.user;
-    res.json({ discordId, username, discriminator, avatar, guilds, appRoles });
+    if (req.isAuthenticated()) {
+        const { discordId, username, discriminator, avatar, guilds, appRoles } = req.user;
+        res.json({ discordId, username, discriminator, avatar, guilds, appRoles });
+    } else {
+        res.status(401).json({ message: 'No autenticado.' });
+    }
 });
 
 module.exports = router;
